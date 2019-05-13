@@ -1,20 +1,21 @@
 import React, { Component } from "react";
-import Login from "./Login";
+import { BrowserRouter as Router, Route, Redirect } from "react-router-dom";
 
-import blog from "../apis/blog";
+import Login from "./Login";
+import Dashboard from "./Dashboard";
 
 class App extends Component {
   constructor(props) {
     super(props);
+    this.state = { redirect: false };
   }
-
-  handleFormSubmit = async (email, password) => {
-    const res = await blog.post("/api/users/login", { email, password });
-    console.log(res);
-  };
-
   render() {
-    return <Login handleFormSubmit={this.handleFormSubmit} />;
+    return (
+      <Router>
+        <Route exact path="/login" component={Login} />
+        <Route exact path="/dashboard" component={Dashboard} />
+      </Router>
+    );
   }
 }
 

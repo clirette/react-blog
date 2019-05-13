@@ -1,17 +1,31 @@
 import React, { Component } from "react";
+import { Redirect } from "react-router-dom";
+import blog from "../apis/blog";
 
 class Login extends Component {
   constructor(props) {
     super(props);
-    this.state = { email: "", password: "" };
+    this.state = { email: "", password: "", redirect: false };
   }
 
-  handleFormSubmit = e => {
+  handleFormSubmit = async e => {
     e.preventDefault();
-    this.props.handleFormSubmit(this.state.email, this.state.password);
+    const { data } = await blog
+      .post("/api/users/login", {
+        email: this.state.email,
+        password: this.state.password
+      })
+      .catch(err => console.log(err));
+    if (data && data.token) {
+      localStorage.setItem("jwt", data.token);
+      this.setState({ redirect: true });
+    }
   };
 
   render() {
+    if (this.state.redirect) {
+      return <Redirect to="/dashboard" />;
+    }
     return (
       <div className="login-container">
         <form onSubmit={this.handleFormSubmit}>
