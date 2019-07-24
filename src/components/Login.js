@@ -1,41 +1,38 @@
-import React, { Component } from "react";
+import React, { useState } from "react";
 import { Redirect } from "react-router-dom";
 import blog from "../apis/blog";
 
-class Login extends Component {
-  constructor(props) {
-    super(props);
-    this.state = { email: "", password: "", redirect: false };
-  }
+const Login = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [redirect, setRedirect] = useState(false);
 
-  handleFormSubmit = async e => {
+  const handleFormSubmit = async e => {
     e.preventDefault();
     const { data } = await blog
       .post("/api/users/login", {
-        email: this.state.email,
-        password: this.state.password
+        email,
+        password
       })
       .catch(err => console.log(err));
     if (data && data.token) {
       localStorage.setItem("jwt", data.token);
-      this.setState({ redirect: true });
+      setRedirect(true);
     }
   };
 
-  render() {
-    if (this.state.redirect) {
-      return <Redirect to="/dashboard" />;
-    }
-    return (
+  return (
+    <>
+      {redirect ? <Redirect to="/dashboard" /> : null}
       <div className="login-container">
-        <form onSubmit={this.handleFormSubmit}>
+        <form onSubmit={handleFormSubmit}>
           <div className="form-item">
             <label htmlFor="email">Email</label>
             <input
               type="email"
               name="email"
               id="email"
-              onChange={e => this.setState({ email: e.target.value })}
+              onChange={e => setEmail(e.target.value)}
             />
           </div>
           <div className="form-item">
@@ -44,7 +41,7 @@ class Login extends Component {
               type="password"
               name="password"
               id="password"
-              onChange={e => this.setState({ password: e.target.value })}
+              onChange={e => setPassword(e.target.value)}
             />
           </div>
           <div className="form-item">
@@ -52,8 +49,8 @@ class Login extends Component {
           </div>
         </form>
       </div>
-    );
-  }
-}
+    </>
+  );
+};
 
 export default Login;
