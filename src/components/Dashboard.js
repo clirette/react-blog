@@ -1,54 +1,41 @@
-import React, { Fragment, useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect } from "react";
+import { Link, Redirect } from "react-router-dom";
 import { connect } from "react-redux";
-import { fetchCurrentUser, deletePost } from "../actions";
-import blog from "../apis/blog";
+import { requestUserBlogs, signOut } from "../actions";
 import Post from "./Post";
 
-const Dashboard = ({ fetchCurrentUser, deletePost, users }) => {
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  // const [posts, setPosts] = useState([]);
-  const [loaded, setLoaded] = useState(false);
-
-  const fetchCurrentUsers = async () => {
-    fetchCurrentUser();
-    setLoaded(true);
-  };
-
+const Dashboard = ({ requestUserBlogs, posts, signOut, signedOut }) => {
   useEffect(() => {
-    fetchCurrentUsers();
+    requestUserBlogs();
   }, []);
 
   return (
     <div>
-      <Link to="/create-post">Create New Post</Link>
-      {users.posts && (
-        <Fragment>
-          <h1>
-            {users.firstName} {users.lastName}
-          </h1>
-          <div>
-            <h2>My Posts</h2>
-            {users.posts.map(post => (
-              <Post
-                key={post._id}
-                {...post}
-                deletePost={() => deletePost(post)}
-              />
-            ))}
-          </div>
-        </Fragment>
+      {signedOut ? <Redirect to="/login" /> : null}
+      {localStorage.getItem("jwt") ? (
+        <button onClick={signOut}>Sign Out</button>
+      ) : (
+        <Link to="/login">
+          <button>Sign In</button>
+        </Link>
       )}
+      <Link to="/create-post">
+        <button>Create Post</button>
+      </Link>
+      {posts &&
+        posts
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+          .map(post => <Post {...post} key={post._id} />)}
     </div>
   );
 };
 
-const mapStateToProps = state => {
-  return { users: state.users, posts: state.posts };
-};
+const mapStateToProps = state => ({
+  posts: state.posts.posts,
+  signedOut: state.users.signedOut
+});
 
 export default connect(
   mapStateToProps,
-  { fetchCurrentUser, deletePost }
+  { requestUserBlogs, signOut }
 )(Dashboard);

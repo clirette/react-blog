@@ -1,29 +1,24 @@
 import React, { useState } from "react";
 import { Redirect } from "react-router-dom";
-import blog from "../apis/blog";
+import { connect } from "react-redux";
+import { requestAuthenticateUser } from "../actions";
 
-const Login = () => {
+const Login = ({ requestAuthenticateUser, user }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [redirect, setRedirect] = useState(false);
 
   const handleFormSubmit = async e => {
     e.preventDefault();
-    const { data } = await blog
-      .post("/api/users/login", {
-        email,
-        password
-      })
-      .catch(err => console.log(err));
-    if (data && data.token) {
-      localStorage.setItem("jwt", data.token);
-      setRedirect(true);
-    }
+    requestAuthenticateUser({ email, password });
   };
 
   return (
     <>
-      {redirect ? <Redirect to="/dashboard" /> : null}
+      {user && user.success ? (
+        <Redirect to="/dashboard" />
+      ) : (
+        <h1>{user && user.msg}</h1>
+      )}
       <div className="login-container">
         <form onSubmit={handleFormSubmit}>
           <div className="form-item">
@@ -53,4 +48,9 @@ const Login = () => {
   );
 };
 
-export default Login;
+const mapStateToProps = state => ({ user: state.users.user });
+
+export default connect(
+  mapStateToProps,
+  { requestAuthenticateUser }
+)(Login);
